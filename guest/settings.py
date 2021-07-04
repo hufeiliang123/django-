@@ -25,7 +25,7 @@ SECRET_KEY = 'pfxv+ibqq#s0r5c6ut(9e7a*ob4&l5b*&jxvb)r&i#x)1qb-2y'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -81,7 +81,7 @@ DATABASES = {
         'PORT': 3306,
         'NAME': 'guest',
         'USER': "root",
-        'PASSWORD': '123456hj'
+        'PASSWORD': 'hujing123456'
         # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
@@ -114,6 +114,7 @@ LANGUAGES = [
 
 LANGUAGE_CODE = 'zh-Hans'  # 汉化
 # TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 

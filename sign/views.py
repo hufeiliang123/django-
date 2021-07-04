@@ -1,5 +1,5 @@
-from django.shortcuts import render,get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from sign.models import Event, Guest
@@ -27,7 +27,8 @@ def login_action(request):
             request.session['user'] = username  # 将session 信息记录到浏览器
             return response
         else:
-            return render(request, 'index.html', {'error': 'username or password error !'})
+            return JsonResponse({"status": 10001, "msg": "用户名或密码错误 !"})
+            # return render(request, 'index.html', {'error': 'username or password error !'})
 
 
 # 发布会管理
@@ -54,7 +55,7 @@ def search_name(request):
 def guest_manage(request):
     username = request.session.get('user', '')
     guest_list = Guest.objects.all()
-    paginator = Paginator(guest_list, 3)
+    paginator = Paginator(guest_list, 10)
     page = request.GET.get('page')
     try:
         contacts = paginator.page(page)
@@ -73,8 +74,49 @@ def search_realname(request):
     guest_list = Guest.objects.filter(realname__contains=search_realname)
     return render(request, "guest_manage.html", {"user": username, "guests": guest_list})
 
+
 # 签到页面
 @login_required
-def sign_index(request,eid):
-    event = get_object_or_404(Event,id=eid)
-    return render(request,'sign_index.html',{'event':event})
+def sign_index(request, eid):
+    print("---1------")
+    event = get_object_or_404(Event, id=eid)
+    print("---2------")
+    return render(request, 'sign_index.html', {'event': event})
+
+
+# 签到功能
+@login_required
+def sign_index_action(request, eid):
+    print('----3-----')
+    event = get_object_or_404(Event, id=eid)
+    print('----4-----')
+    phone = request.POST.get('phone', '')
+    print(phone)
+    result = Guest.objects.filter(phone=phone)
+    if not result:
+        return render(request, 'sign_index.html', {
+            "event": event, 'hint': "phone error"})
+
+    result = Guest.objects.filter(phone=phone, event_id=eid)
+    if not result:
+        return render(request, 'sign_index.html', {
+            'event': event, 'hint': 'event id or phone error'})
+
+    result = Guest.objects.filter(phone=phone, event_id=eid)
+    if result.sign:
+        return render(request, 'sign_index.html', {
+            'event': event, 'hint': 'user has signed!'})
+
+    else:
+        Guest.objects.filter(phone=phone, event_id=eid).update(sign='1')
+        return render(request, 'sign_index.html', {'event': event,
+                                                   "hint": 'sign success!',
+                                                   'guest': result
+
+                                                   })
+
+
+# 退出登录
+def logout(request):
+    auth.logout(request)
+    return HttpResponseRedirect('/index')
