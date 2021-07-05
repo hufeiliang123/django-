@@ -88,6 +88,7 @@ def sign_index(request, eid):
 @login_required
 def sign_index_action(request, eid):
     print('----3-----')
+    print('发布会id是{}'.format(eid))
     event = get_object_or_404(Event, id=eid)
     print('----4-----')
     phone = request.POST.get('phone', '')
@@ -101,9 +102,12 @@ def sign_index_action(request, eid):
     if not result:
         return render(request, 'sign_index.html', {
             'event': event, 'hint': 'event id or phone error'})
-
-    result = Guest.objects.filter(phone=phone, event_id=eid)
+    print("-------5-------")
+    result = Guest.objects.get(phone=phone, event_id=eid)
+    print("-------6-------")
+    print("result is {}".format(result))
     if result.sign:
+        print("程序到这里啦-----")
         return render(request, 'sign_index.html', {
             'event': event, 'hint': 'user has signed!'})
 

@@ -9,6 +9,7 @@ from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
 import time
+from tools import Verify
 
 
 @csrf_exempt
@@ -85,7 +86,7 @@ def get_event_list(request):
             return JsonResponse({"status": 10022, "msg": "query result is empty!"})
 
 
-# 添加嘉宾
+# 添加发布会嘉宾
 @csrf_exempt
 def add_guest(request):
     eid = request.POST.get("eid", '')  # 关联发布会id
@@ -96,6 +97,21 @@ def add_guest(request):
     # 判断嘉宾关联的发布会、姓名和手机号均不能为空
     if eid == '' or realname == '' or phone == '':
         return JsonResponse({"status": 10021, "msg": "必填参数不能为空！"})
+
+    # 校验参数合法性
+    phone = Verify.verify_phone(phone)  # 检验phone
+    print(phone)
+    print(realname)
+    if not phone:
+        return JsonResponse({"status": 10026, "msg": "phone参数不合法！"})
+
+    realname = Verify.verify_str(realname)  # 检验realname
+    if not realname:
+        return JsonResponse({"status": 10026, "msg": "realname参数不合法！"})
+
+    email = Verify.verify_email(email)  # 检验email
+    if not email:
+        return JsonResponse({"status": 10026, "msg": "email参数不合法！"})
 
     # 判断嘉宾关联的发布会是否存在
     result = Event.objects.filter(id=eid)
@@ -110,16 +126,19 @@ def add_guest(request):
     # try:
     #     result = Guest.objects.get(realname=realname)
     #     print(result)
-    #     if result:
-    #         return JsonResponse({"status": 10024, "msg": "该嘉宾已添加过，请勿重复添加！"})
     # except ObjectDoesNotExist:
-    #     # return JsonResponse({"status": 10025, "msg": "您还没添加嘉宾呦！"})
-    #     # print('可以继续运行程序')
+        # return JsonResponse({"status": 10025, "msg": "您还没添加嘉宾呦！"})
+        # print('可以继续运行程序')
     #     pass
     result = Guest.objects.filter(realname=realname)
     if result:
         return JsonResponse({"status": 10024, "msg": "该嘉宾已添加过，请勿重复添加！"})
     print(result)
+
+    # 判断手机号是否重复
+    result = Guest.objects.filter(phone=phone)
+    if result:
+        return JsonResponse({"status": 10027, "msg": "phone 重复！"})
 
     event_limit = Event.objects.get(id=eid).limit  # 获取发布会限制人数
     guest_limit = Guest.objects.filter(event_id=eid)  # 发布会已添加的嘉宾人数
