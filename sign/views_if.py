@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
 import time
 from tools import Verify
+from log import logger
 
 
 @csrf_exempt
@@ -24,7 +25,7 @@ def add_event(request):  # 添加发布会接口
         return JsonResponse({'status': 10021, "msg": "必填不能为空"})
 
     result = Event.objects.filter(id=eid)
-    print(result)
+    logger.info(result)
     if result:
         return JsonResponse({"status": 10022, "msg": "event id already exists"})
 
@@ -100,8 +101,8 @@ def add_guest(request):
 
     # 校验参数合法性
     phone = Verify.verify_phone(phone)  # 检验phone
-    print(phone)
-    print(realname)
+    logger.info(phone)
+    logger.info(realname)
     if not phone:
         return JsonResponse({"status": 10026, "msg": "phone参数不合法！"})
 
@@ -127,13 +128,13 @@ def add_guest(request):
     #     result = Guest.objects.get(realname=realname)
     #     print(result)
     # except ObjectDoesNotExist:
-        # return JsonResponse({"status": 10025, "msg": "您还没添加嘉宾呦！"})
-        # print('可以继续运行程序')
+    # return JsonResponse({"status": 10025, "msg": "您还没添加嘉宾呦！"})
+    # print('可以继续运行程序')
     #     pass
     result = Guest.objects.filter(realname=realname)
     if result:
         return JsonResponse({"status": 10024, "msg": "该嘉宾已添加过，请勿重复添加！"})
-    print(result)
+    logger.info(result)
 
     # 判断手机号是否重复
     result = Guest.objects.filter(phone=phone)
